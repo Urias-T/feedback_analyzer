@@ -1,0 +1,31 @@
+Customer: Hi there, I wanted to provide some feedback on my recent experience with your company.
+
+Representative: Of course, we're always eager to hear feedback. Can you please tell me more about your experience?
+
+Customer: Well, I had a bit of a frustrating experience with your website. I was trying to purchase a product, but the website kept crashing and it took me several attempts before I was finally able to complete the transaction.
+
+Representative: I'm sorry to hear that. That's definitely not the experience we want our customers to have. Can you tell me more about what happened when the website crashed?
+
+Customer: Yeah, so I would add an item to my cart and when I tried to go to the checkout page, the website would just freeze up and I'd have to start the process over again.
+
+Representative: I see. That sounds really frustrating. Can you tell me what type of device and internet connection you were using?
+
+Customer: I was using my laptop and I have a high-speed internet connection.
+
+Representative: Okay, thank you for that information. I'll definitely pass this feedback on to our website team to investigate what might have caused the issue. Is there anything else you'd like to share about your experience?
+
+Customer: Actually, yes. When I finally did receive my order, there was a small defect in the product. It wasn't a huge deal, but it was still a bit disappointing.
+
+Representative: I'm sorry to hear that. We definitely want to make sure that all of our products are in perfect condition when they arrive to our customers. Can you tell me more about the defect?
+
+Customer: It was just a small scratch on the surface of the product, but it was noticeable and detracted from the overall appearance of the item.
+
+Representative: I understand. That's definitely not acceptable and we want to make it right. Would you like us to send you a replacement product, or would you prefer a refund?
+
+Customer: I think I would prefer a replacement product, if possible.
+
+Representative: Absolutely. We'll make sure to send out a replacement product to you as soon as possible. Is there anything else you'd like to share with us about your experience?
+
+Customer: No, that's all for now. Thank you for listening to my feedback.
+
+Representative: Thank you for taking the time to share your experience with us. We appreciate your feedback and we'll definitely take it into consideration as we work to improve our products and services.
