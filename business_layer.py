@@ -1,10 +1,13 @@
+import os
 import requests
 import config
 import math
 import json
 import re
 
-api_key = config.APIKEY
+# api_key = config.APIKEY  # Use this for "comfig.py" module
+
+api_key = os.getenv("APIKEY")  # Comment this out if you're using the "config.py" module
 
 BASE_URL = "https://app.thetextapi.com/text/"
 
