@@ -31,6 +31,17 @@ CONTENT_STYLE = {
 }
 
 sidebar = html.Div(children=[
+            dbc.Alert("Ensure you've selected the right format for your transcript.", color="warning"),
+
+            dbc.RadioItems(
+                options=[
+                    {"label": "Dialogue Format", "value": "dialogue"},
+                    {"label": "Non-Dialogue Format", "value": "non-dialogue"}
+                ],
+                value="dialogue",
+                id="format_selection"
+            ),
+
             dbc.Button("Draw Insights", id="insight_button", disabled=True,
                         style={"margin-left": "15px", "margin-top": "15px", "margin-bottom": '15px'}),
 
@@ -165,17 +176,18 @@ def themes_gotten_alerts(theme3):
                Output("transcript1_output", "value"),
                Output("transcript2_output", "value"),
                Output("transcript3_output", "value")],
-              [Input("transcript1_input", "value"),
+              [Input("format_selection", "value"),
+               Input("transcript1_input", "value"),
                Input("transcript2_input", "value"),
                Input("transcript3_input", "value"),
                Input("insight_button", "n_clicks")])
-def get_insight(text1, text2, text3, n_clicks):
+def get_insight(format, text1, text2, text3, n_clicks):
     changed_id = [p["prop_id"] for p in ctx.triggered][0]
     texts = [text1, text2, text3]
     if n_clicks is None:
         raise PreventUpdate
     elif "insight_button" in changed_id:
-        feedbacks, summaries = summarizer(texts=texts)
+        feedbacks, summaries = summarizer(format=format, texts=texts)
         return[feedbacks, summaries], feedbacks["transcript_0"], feedbacks["transcript_1"], \
             feedbacks["transcript_2"]
 
@@ -195,4 +207,4 @@ def get_themes(data, n_clicks):
     
 
 if __name__ == "__main__":
-    app.run_server(debug=False)  # Set debug to False before deployment.
+    app.run_server(debug=True)  # Set debug to False before deployment.

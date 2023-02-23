@@ -5,7 +5,7 @@ import math
 import json
 import re
 
-# api_key = config.APIKEY  # Use this for "comfig.py" module
+# api_key = config.APIKEY  # Use this for "config.py" module
 
 api_key = os.getenv("APIKEY")  # Comment this out if you're using the "config.py" module
 
@@ -51,10 +51,11 @@ def chunker(text):
     return chunks
 
 
-def summarizer(texts, url=BASE_URL, headers=HEADERS):
+def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
     """Function to summarize texts by sending to TheTextAPI
 
     Args:
+        format (str): String indicating the format in which the transcripts are laid out.
         texts (list): List of strings to be summarized
         url (web link, optional): Base URL to TheTextAPI. Defaults to BASE_URL.
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
@@ -70,40 +71,78 @@ def summarizer(texts, url=BASE_URL, headers=HEADERS):
 
     feedbacks = {}  # dictionary of strings
     
-    for i, text in enumerate(texts):
-        # Initiailize an empty string for customer feedback
-        customer_feedback = ""
+    if format == "dialogue":
+        for i, text in enumerate(texts):
+            # Initiailize an empty string for customer feedback
+            customer_feedback = ""
 
-        # Split the input text into lines
-        lines = text.split("\n")
+            # Split the input text into lines
+            lines = text.split("\n")
 
-        # Select lines starting with "Customer" into a list
-        customer_response_lines = [line for line in lines if line.startswith("Customer")]
+            # Select lines starting with "Customer" into a list
+            customer_response_lines = [line for line in lines if line.startswith("Customer")]
+            
+            # Loop through the list, pick out the responses and attach them to the customer feedback string
+            for response in customer_response_lines:
+                customer_feedback += response.split(":")[1] + ""
+
+            chunks = chunker(customer_feedback)  # 5 chunks
         
-        # Loop through the list, pick out the responses and attach them to the customer feedback string
-        for response in customer_response_lines:
-            customer_feedback += response.split(":")[1] + ""
+            chunk_summaries = []
 
-        chunks = chunker(customer_feedback)  # 5 chunks
-       
-        chunk_summaries = []
+            # Summarize each chunk and append to the initialized empty list 
+            for chunk in chunks:
+                body = {
+                    "text": chunk
+                    # proportion defaults to 0.3
+                }
 
-        # Summarize each chunk and append to the initialized empty list 
-        for chunk in chunks:
-            body = {
-                "text": chunk
-            }
+                response = requests.post(url=summarize_url, headers=headers, json=body)
 
-            response = requests.post(url=summarize_url, headers=headers, json=body)
+                summary = json.loads(response.text)["summary"]
+                chunk_summaries.append("* " + summary)
 
-            summary = json.loads(response.text)["summary"]
-            chunk_summaries.append("* " + summary)
+            output = "\n \n ".join(chunk_summaries)
 
-        output = "\n \n ".join(chunk_summaries)
+            summaries["transcript_" + str(i)] = chunk_summaries
 
-        summaries["transcript_" + str(i)] = chunk_summaries
+            feedbacks["transcript_" + str(i)] = output
 
-        feedbacks["transcript_" + str(i)] = output
+    elif format == "non-dialogue":
+        for i, text in enumerate(texts):
+            customer_feedback = " "
+
+            lines = text.split("\n")
+
+            needed_lines = [line for line in lines if line != " "]
+            
+            for line in needed_lines:
+                line = re.sub("\t", ".", line)
+                line = re.sub("-", " ", line)
+                clean_line = re.sub(r"\(\d+\)\s?", " ", line)
+
+                customer_feedback += clean_line
+
+            chunks = chunker(customer_feedback)  # 5 chunks
+        
+            chunk_summaries = []
+
+            # Summarize each chunk and append to the initialized empty list 
+            for chunk in chunks:
+                body = {
+                    "text": chunk
+                }
+
+                response = requests.post(url=summarize_url, headers=headers, json=body)
+
+                summary = json.loads(response.text)["summary"]
+                chunk_summaries.append("* " + summary)
+
+            output = "\n \n ".join(chunk_summaries)
+
+            summaries["transcript_" + str(i)] = chunk_summaries
+
+            feedbacks["transcript_" + str(i)] = output
 
     return feedbacks, summaries
 
@@ -152,9 +191,9 @@ def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
         for _, v in summaries.items():
             for i, string in enumerate(v):
                 if phrase in string:
-                    locations[phrase].append(f"\n \n  * Transcript {transcript_count}, \
-                                                insight {i+1}")  # Plus one because Python 
-                                                                 # indexing starts from 0
+                    locations[phrase].append(f"\n \n  * Transcript {transcript_count},\
+                                             insight {i+1}")  # Plus one because Python 
+                                                              # indexing starts from 0
             transcript_count += 1
                 
         
