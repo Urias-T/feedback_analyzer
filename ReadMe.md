@@ -2,9 +2,12 @@
 
 
 
-This web app is built to draw insight and themes from three  related customer feedback transcripts.
+This web app is built to draw insight and themes from three related customer feedback transcripts.
 
-The transcripts are expected to be in dialogue format with only the lines with customer response beginning with "Customer:" (*Check "sample_transcripts" folder for examples.*)
+## Expected Input Formats:
+The two expected input formats are:
+
+- The "Dialogue format": This format would have both the questions asked and the response given but only the lines of the responses would begin with "Customer:" (*Check "sample_transcripts" folder for examples.*)
 
 ```
 Interviewer: Can you tell us about your experience with our product?
@@ -17,7 +20,9 @@ Customer 1: One thing that would be nice is if there were more video tutorials a
 
 Interviewer: Thank you for your feedback. We'll definitely take that into consideration.
 ```
+- The "Non-Dialogue format": This format is a compilation of all the responses without the questions asked. 
 
+*You would be expected to choose your transcript format in the app but the default format is the "Dialogue format".*
 
 ## How To Use: 
 
@@ -39,7 +44,7 @@ python app.py
 
 ## How it works:
 
-feedback_analyzer is built with Dash frontend and Python 3.10.9 on the backend. On a high level, it works by taking the texts, chunking them up to five portions and sending each portion to TheTextAPI summarize endpoint to draw insights. This chunking process allows for quicker and more accurate analysis by the models used by the API endpoint.
+"feedback_analyzer" is built with Dash frontend and Python 3.10.9 on the backend. On a high level, it works by taking the texts, chunking them up to five portions and sending each portion to TheTextAPI summarize endpoint to draw insights. This chunking process allows for quicker and more accurate analysis by the models used by the API endpoint.
 
 These insights are then stored in the browser cache and transferred to another callback function through which they are transferred to another function where they are bunched into a full text paragraph and sent to another API endpoint by TheTextAPI where the three (default) most common phrases are returned.
 
