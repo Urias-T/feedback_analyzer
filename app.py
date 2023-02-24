@@ -31,6 +31,19 @@ CONTENT_STYLE = {
 }
 
 sidebar = html.Div(children=[
+            dbc.Alert("Ensure you've selected the right format for your transcript.", color="warning"),
+
+            dbc.Alert("Verify your format!", color="danger", duration=4000, is_open=False, id="format_warning"),
+
+            dbc.RadioItems(
+                options=[
+                    {"label": "Dialogue Format", "value": "dialogue"},
+                    {"label": "Non-Dialogue Format", "value": "non-dialogue"}
+                ],
+                value="dialogue",
+                id="format_selection"
+            ),
+
             dbc.Button("Draw Insights", id="insight_button", disabled=True,
                         style={"margin-left": "15px", "margin-top": "15px", "margin-bottom": '15px'}),
 
@@ -112,6 +125,11 @@ layout = [html.Div(children=[sidebar, content,
 ])]
 app.layout = html.Div(layout)
 
+@app.callback(Output("format_warning", "is_open"),
+              Input("transcript1_input", "value"))
+def toggle_warning(transcript1):
+    if transcript1 != "":
+        return True
 
 @app.callback([Output("insight_button", "disabled"),
                Output("get_themes_button", "disabled")],
@@ -165,17 +183,18 @@ def themes_gotten_alerts(theme3):
                Output("transcript1_output", "value"),
                Output("transcript2_output", "value"),
                Output("transcript3_output", "value")],
-              [Input("transcript1_input", "value"),
+              [Input("format_selection", "value"),
+               Input("transcript1_input", "value"),
                Input("transcript2_input", "value"),
                Input("transcript3_input", "value"),
                Input("insight_button", "n_clicks")])
-def get_insight(text1, text2, text3, n_clicks):
+def get_insight(format, text1, text2, text3, n_clicks):
     changed_id = [p["prop_id"] for p in ctx.triggered][0]
     texts = [text1, text2, text3]
     if n_clicks is None:
         raise PreventUpdate
     elif "insight_button" in changed_id:
-        feedbacks, summaries = summarizer(texts=texts)
+        feedbacks, summaries = summarizer(format=format, texts=texts)
         return[feedbacks, summaries], feedbacks["transcript_0"], feedbacks["transcript_1"], \
             feedbacks["transcript_2"]
 
