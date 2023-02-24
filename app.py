@@ -207,4 +207,4 @@ def get_themes(data, n_clicks):
     
 
 if __name__ == "__main__":
-    app.run_server(debug=True)  # Set debug to False before deployment.
+    app.run_server(debug=False)  # Set debug to False before deployment.
