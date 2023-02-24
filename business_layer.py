@@ -71,7 +71,7 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
 
     feedbacks = {}  # dictionary of strings
     
-    if format == "dialogue":
+    if format == "dialogue":  # dialogue format
         for i, text in enumerate(texts):
             # Initiailize an empty string for customer feedback
             customer_feedback = ""
@@ -108,18 +108,20 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
 
             feedbacks["transcript_" + str(i)] = output
 
-    elif format == "non-dialogue":
+    elif format == "non-dialogue":  # non-dialogue format
         for i, text in enumerate(texts):
             customer_feedback = " "
 
             lines = text.split("\n")
 
-            needed_lines = [line for line in lines if line != " "]
+            needed_lines = [line for line in lines if line != " "]  # ensure the lines used are only those with
+                                                                    # actual content
             
             for line in needed_lines:
-                line = re.sub("\t", ".", line)
-                line = re.sub("-", " ", line)
-                clean_line = re.sub(r"\(\d+\)\s?", " ", line)
+                # clean texts
+                line = re.sub("\t", ".", line)  # remove tabs
+                line = re.sub("-", " ", line)  # remove dashes used in numbering
+                clean_line = re.sub(r"\(\d+\)\s?", " ", line)  # remove digits used in numbering
 
                 customer_feedback += clean_line
 

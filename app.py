@@ -33,6 +33,8 @@ CONTENT_STYLE = {
 sidebar = html.Div(children=[
             dbc.Alert("Ensure you've selected the right format for your transcript.", color="warning"),
 
+            dbc.Alert("Verify your format!", color="danger", duration=4000, is_open=False, id="format_warning"),
+
             dbc.RadioItems(
                 options=[
                     {"label": "Dialogue Format", "value": "dialogue"},
@@ -123,6 +125,11 @@ layout = [html.Div(children=[sidebar, content,
 ])]
 app.layout = html.Div(layout)
 
+@app.callback(Output("format_warning", "is_open"),
+              Input("transcript1_input", "value"))
+def toggle_warning(transcript1):
+    if transcript1 != "":
+        return True
 
 @app.callback([Output("insight_button", "disabled"),
                Output("get_themes_button", "disabled")],
