@@ -194,9 +194,9 @@ def get_insight(format, text1, text2, text3, n_clicks):
     if n_clicks is None:
         raise PreventUpdate
     elif "insight_button" in changed_id:
-        feedbacks, summaries = summarizer(format=format, texts=texts)
-        return[feedbacks, summaries], feedbacks["transcript_0"], feedbacks["transcript_1"], \
-            feedbacks["transcript_2"]
+        feedbacks = summarizer(format=format, texts=texts)
+        return feedbacks, feedbacks["transcript_0"]["output"], feedbacks["transcript_1"]["output"], \
+            feedbacks["transcript_2"]["output"]
 
 
 @app.callback([Output("theme1_output", "value"),
@@ -209,7 +209,7 @@ def get_themes(data, n_clicks):
     if n_clicks is None:
         raise PreventUpdate
     elif "get_themes_button" in changed_id:
-        outputs = derive_themes(feedbacks=data[0], summaries=data[1])  # data: list of dictionaries
+        outputs = derive_themes(feedbacks=data)  # data: Data cache
         return outputs[0], outputs[1], outputs[2]
     
 

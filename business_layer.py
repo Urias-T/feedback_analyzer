@@ -61,15 +61,15 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
 
     Returns:
-        feedbacks, summaries: List of dictionaries.
+        feedbacks: Dictionary of dictionaries containing transcript summaries and outputs.
     """
 
     # Concatenate required endpoint to base url
     summarize_url = url+"summarize"
 
-    summaries = {}  # dictionary of lists of strings
+    # summaries = {}  # dictionary of lists of strings
 
-    feedbacks = {}  # dictionary of strings
+    feedbacks = {}  # dictionary of dictionaries with transcript summaries and outputs
     
     if format == "dialogue":  # dialogue format
         for i, text in enumerate(texts):
@@ -104,9 +104,10 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
 
             output = "\n \n ".join(chunk_summaries)
 
-            summaries["transcript_" + str(i)] = chunk_summaries
+            # summaries["transcript_" + str(i)] = chunk_summaries
 
-            feedbacks["transcript_" + str(i)] = output
+            feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
+                                                 "output" : output}
 
     elif format == "non-dialogue":  # non-dialogue format
         for i, text in enumerate(texts):
@@ -142,19 +143,19 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
 
             output = "\n \n ".join(chunk_summaries)
 
-            summaries["transcript_" + str(i)] = chunk_summaries
+            # summaries["transcript_" + str(i)] = chunk_summaries
 
-            feedbacks["transcript_" + str(i)] = output
+            feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
+                                                 "output" : output}
 
-    return feedbacks, summaries
+    return feedbacks
 
 
-def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
+def derive_themes(feedbacks, url=BASE_URL, headers=HEADERS):
     """Function to derive themes from texts.
 
     Args:
-        feedbacks (dict): Dictionary of lists.
-        summaries (dict): Dictionary of lists of strings.
+        feedbacks (dict): Dictionary of dictionaries containing transcript summaries and outputs.
         url (web link, optional): Base URL to TheTextAPI. Defaults to BASE_URL.
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
 
@@ -167,9 +168,10 @@ def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
 
     insights = []
 
-    for _, v in feedbacks.items():
+    for key in feedbacks.keys():
+    # for _, v in feedbacks.items():
         # Clean text
-        v = re.sub("\*", "", v)
+        v = re.sub("\*", "", feedbacks[key]["output"])
         v = re.sub("\n \n", " ", v)
         insights.append(v)
 
@@ -189,14 +191,17 @@ def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
 
     for phrase in most_common_phrases:
         locations[phrase] = [phrase]
-        transcript_count = 1  # Keep track ofthe transcript being checked.
-        for _, v in summaries.items():
-            for i, string in enumerate(v):
+        # transcript_count = 1  # Keep track ofthe transcript being checked.
+        # for _, v in summaries.items():
+        for key in feedbacks.keys():
+            summaries = feedbacks[key]["summaries"]
+            for i, string in enumerate(summaries):
                 if phrase in string:
-                    locations[phrase].append(f"\n \n  * Transcript {transcript_count},\
+                    transcript_id = key.split("_")[1]
+                    locations[phrase].append(f"\n \n  * Transcript {transcript_id},\
                                              insight {i+1}")  # Plus one because Python 
                                                               # indexing starts from 0
-            transcript_count += 1
+            # transcript_count += 1
                 
         
         outputs.append(" ".join(locations[phrase]))
