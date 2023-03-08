@@ -50,26 +50,52 @@ def chunker(text):
 
     return chunks
 
-
-def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
-    """Function to summarize texts by sending to TheTextAPI
+def api_call(chunks, url=BASE_URL, headers=HEADERS):
+    """Function responsible for making the api call for text summarization.
 
     Args:
-        format (str): String indicating the format in which the transcripts are laid out.
-        texts (list): List of strings to be summarized
+        chunks (list): List of string chunks
         url (web link, optional): Base URL to TheTextAPI. Defaults to BASE_URL.
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
 
     Returns:
-        feedbacks, summaries: List of dictionaries.
+        output, chunk_summaries: Tuple of output string and list of summaries.
     """
 
     # Concatenate required endpoint to base url
     summarize_url = url+"summarize"
+    
+    chunk_summaries = []
 
-    summaries = {}  # dictionary of lists of strings
+    # Summarize each chunk and append to the initialized empty list 
+    for chunk in chunks:
+        body = {
+            "text": chunk
+            # proportion defaults to 0.3
+        }
 
-    feedbacks = {}  # dictionary of strings
+        response = requests.post(url=summarize_url, headers=headers, json=body)
+
+        summary = json.loads(response.text)["summary"]
+        chunk_summaries.append("* " + summary)
+
+    output = "\n \n ".join(chunk_summaries)
+
+    return output, chunk_summaries
+
+
+def summarizer(format, texts):
+    """Function responsible for cleaning text and making summary.
+
+    Args:
+        format (str): String indicating the format in which the transcripts are laid out.
+        texts (list): List of strings to be summarized
+        
+    Returns:
+        feedbacks: Dictionary of dictionaries containing transcript summaries and outputs.
+    """
+
+    feedbacks = {}  # dictionary of dictionaries with transcript summaries and outputs
     
     if format == "dialogue":  # dialogue format
         for i, text in enumerate(texts):
@@ -87,26 +113,11 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
                 customer_feedback += response.split(":")[1] + ""
 
             chunks = chunker(customer_feedback)  # 5 chunks
-        
-            chunk_summaries = []
 
-            # Summarize each chunk and append to the initialized empty list 
-            for chunk in chunks:
-                body = {
-                    "text": chunk
-                    # proportion defaults to 0.3
-                }
+            output, chunk_summaries = api_call(chunks)
 
-                response = requests.post(url=summarize_url, headers=headers, json=body)
-
-                summary = json.loads(response.text)["summary"]
-                chunk_summaries.append("* " + summary)
-
-            output = "\n \n ".join(chunk_summaries)
-
-            summaries["transcript_" + str(i)] = chunk_summaries
-
-            feedbacks["transcript_" + str(i)] = output
+            feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
+                                                 "output" : output}
 
     elif format == "non-dialogue":  # non-dialogue format
         for i, text in enumerate(texts):
@@ -126,35 +137,20 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
                 customer_feedback += clean_line
 
             chunks = chunker(customer_feedback)  # 5 chunks
+
+            output, chunk_summaries = api_call(chunks)
         
-            chunk_summaries = []
+            feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
+                                                 "output" : output}
 
-            # Summarize each chunk and append to the initialized empty list 
-            for chunk in chunks:
-                body = {
-                    "text": chunk
-                }
-
-                response = requests.post(url=summarize_url, headers=headers, json=body)
-
-                summary = json.loads(response.text)["summary"]
-                chunk_summaries.append("* " + summary)
-
-            output = "\n \n ".join(chunk_summaries)
-
-            summaries["transcript_" + str(i)] = chunk_summaries
-
-            feedbacks["transcript_" + str(i)] = output
-
-    return feedbacks, summaries
+    return feedbacks
 
 
-def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
+def derive_themes(feedbacks, url=BASE_URL, headers=HEADERS):
     """Function to derive themes from texts.
 
     Args:
-        feedbacks (dict): Dictionary of lists.
-        summaries (dict): Dictionary of lists of strings.
+        feedbacks (dict): Dictionary of dictionaries containing transcript summaries and outputs.
         url (web link, optional): Base URL to TheTextAPI. Defaults to BASE_URL.
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
 
@@ -167,9 +163,10 @@ def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
 
     insights = []
 
-    for _, v in feedbacks.items():
+    for key in feedbacks.keys():
+    # for _, v in feedbacks.items():
         # Clean text
-        v = re.sub("\*", "", v)
+        v = re.sub("\*", "", feedbacks[key]["output"])
         v = re.sub("\n \n", " ", v)
         insights.append(v)
 
@@ -189,14 +186,17 @@ def derive_themes(feedbacks, summaries, url=BASE_URL, headers=HEADERS):
 
     for phrase in most_common_phrases:
         locations[phrase] = [phrase]
-        transcript_count = 1  # Keep track ofthe transcript being checked.
-        for _, v in summaries.items():
-            for i, string in enumerate(v):
+        # transcript_count = 1  # Keep track ofthe transcript being checked.
+        # for _, v in summaries.items():
+        for key in feedbacks.keys():
+            summaries = feedbacks[key]["summaries"]
+            for i, string in enumerate(summaries):
                 if phrase in string:
-                    locations[phrase].append(f"\n \n  * Transcript {transcript_count},\
+                    transcript_id = key.split("_")[1]
+                    locations[phrase].append(f"\n \n  * Transcript {transcript_id},\
                                              insight {i+1}")  # Plus one because Python 
                                                               # indexing starts from 0
-            transcript_count += 1
+            # transcript_count += 1
                 
         
         outputs.append(" ".join(locations[phrase]))
