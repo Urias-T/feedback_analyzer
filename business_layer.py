@@ -50,24 +50,50 @@ def chunker(text):
 
     return chunks
 
-
-def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
-    """Function to summarize texts by sending to TheTextAPI
+def api_call(chunks, url=BASE_URL, headers=HEADERS):
+    """Function responsible for making the api call for text summarization.
 
     Args:
-        format (str): String indicating the format in which the transcripts are laid out.
-        texts (list): List of strings to be summarized
+        chunks (list): List of string chunks
         url (web link, optional): Base URL to TheTextAPI. Defaults to BASE_URL.
         headers (JSON, optional): JSON object containing necessary headers for API call. Defaults to HEADERS.
 
     Returns:
-        feedbacks: Dictionary of dictionaries containing transcript summaries and outputs.
+        output, chunk_summaries: Tuple of output string and list of summaries.
     """
 
     # Concatenate required endpoint to base url
     summarize_url = url+"summarize"
+    
+    chunk_summaries = []
 
-    # summaries = {}  # dictionary of lists of strings
+    # Summarize each chunk and append to the initialized empty list 
+    for chunk in chunks:
+        body = {
+            "text": chunk
+            # proportion defaults to 0.3
+        }
+
+        response = requests.post(url=summarize_url, headers=headers, json=body)
+
+        summary = json.loads(response.text)["summary"]
+        chunk_summaries.append("* " + summary)
+
+    output = "\n \n ".join(chunk_summaries)
+
+    return output, chunk_summaries
+
+
+def summarizer(format, texts):
+    """Function responsible for cleaning text and making summary.
+
+    Args:
+        format (str): String indicating the format in which the transcripts are laid out.
+        texts (list): List of strings to be summarized
+        
+    Returns:
+        feedbacks: Dictionary of dictionaries containing transcript summaries and outputs.
+    """
 
     feedbacks = {}  # dictionary of dictionaries with transcript summaries and outputs
     
@@ -87,24 +113,8 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
                 customer_feedback += response.split(":")[1] + ""
 
             chunks = chunker(customer_feedback)  # 5 chunks
-        
-            chunk_summaries = []
 
-            # Summarize each chunk and append to the initialized empty list 
-            for chunk in chunks:
-                body = {
-                    "text": chunk
-                    # proportion defaults to 0.3
-                }
-
-                response = requests.post(url=summarize_url, headers=headers, json=body)
-
-                summary = json.loads(response.text)["summary"]
-                chunk_summaries.append("* " + summary)
-
-            output = "\n \n ".join(chunk_summaries)
-
-            # summaries["transcript_" + str(i)] = chunk_summaries
+            output, chunk_summaries = api_call(chunks)
 
             feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
                                                  "output" : output}
@@ -127,24 +137,9 @@ def summarizer(format, texts, url=BASE_URL, headers=HEADERS):
                 customer_feedback += clean_line
 
             chunks = chunker(customer_feedback)  # 5 chunks
+
+            output, chunk_summaries = api_call(chunks)
         
-            chunk_summaries = []
-
-            # Summarize each chunk and append to the initialized empty list 
-            for chunk in chunks:
-                body = {
-                    "text": chunk
-                }
-
-                response = requests.post(url=summarize_url, headers=headers, json=body)
-
-                summary = json.loads(response.text)["summary"]
-                chunk_summaries.append("* " + summary)
-
-            output = "\n \n ".join(chunk_summaries)
-
-            # summaries["transcript_" + str(i)] = chunk_summaries
-
             feedbacks["transcript_" + str(i)] = {"summaries" : chunk_summaries,
                                                  "output" : output}
 
